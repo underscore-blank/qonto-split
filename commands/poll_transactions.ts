@@ -1,9 +1,9 @@
-import { BaseCommand } from '@adonisjs/core/ace';
+import { BaseCommand, flags } from '@adonisjs/core/ace';
 import type { CommandOptions } from '@adonisjs/core/types/ace';
 import { inject } from '@adonisjs/core';
-import hash from '@adonisjs/core/services/hash';
 
 import env from '#start/env';
+import hash from '@adonisjs/core/services/hash';
 
 import QontoService from '#services/qonto_service';
 
@@ -33,7 +33,7 @@ export default class PollTransactions extends BaseCommand {
         const transactionsByAccountIds = await Promise.all(
             accountsToWatchIds.map(async (accountId) => {
                 const { transactions } = await qontoService.listTransactions({
-                    'bank_account_id': accountId,
+                    bank_account_id: accountId,
 
                     'operation_type[]': 'income',
 

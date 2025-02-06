@@ -11,10 +11,9 @@ export default class ExcludeIban extends BaseCommand {
         startApp: true
     };
 
-    // need to be an argument
     @args.string({
         argumentName: 'iban',
-        description: 'Iban that you need to exclude',
+        description: 'Iban that you need to exclude'
     })
     declare iban: string;
 
@@ -29,7 +28,7 @@ export default class ExcludeIban extends BaseCommand {
         const exclusions = await Exclusion.all();
 
         for (const exclusion of exclusions) {
-            const match = await hash.verify(exclusion.iban, this.iban)
+            const match = await hash.verify(exclusion.iban, this.iban);
             if (match) {
                 this.logger.warning('This IBAN is already in the exclusion list');
                 await this.terminate();

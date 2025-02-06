@@ -1,5 +1,5 @@
-import { DateTime } from 'luxon'
-import { BaseModel, column } from '@adonisjs/lucid/orm'
+import { DateTime } from 'luxon';
+import { BaseModel, column } from '@adonisjs/lucid/orm';
 
 export default class ProcessedTransaction extends BaseModel {
     @column({ isPrimary: true })
@@ -21,8 +21,8 @@ export default class ProcessedTransaction extends BaseModel {
     declare amountSplit: string | null;
 
     @column.dateTime({ autoCreate: true })
-    declare createdAt: DateTime
+    declare createdAt: DateTime;
 
     @column.dateTime({ autoCreate: true, autoUpdate: true })
-    declare updatedAt: DateTime
+    declare updatedAt: DateTime;
 }
