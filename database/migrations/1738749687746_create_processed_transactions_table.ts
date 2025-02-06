@@ -10,9 +10,8 @@ export default class extends BaseSchema {
             table.string('transaction_id').notNullable().unique()
             table.string('amount').notNullable()
 
-            table.timestamp('created_at')
-            table.timestamp('updated_at')
-        })
+            table.timestamps(true, true);
+        });
     }
 
     async down() {
