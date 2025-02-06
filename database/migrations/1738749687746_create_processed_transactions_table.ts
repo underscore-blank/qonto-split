@@ -21,5 +21,3 @@ export default class extends BaseSchema {
         this.schema.dropTable(this.tableName);
     }
 }
-
-// TODO: amount, reference, label, amount_split
