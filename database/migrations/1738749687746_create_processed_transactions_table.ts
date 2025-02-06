@@ -7,8 +7,11 @@ export default class extends BaseSchema {
         this.schema.createTable(this.tableName, (table) => {
             table.increments('id');
 
-            table.string('transaction_id').notNullable().unique()
-            table.string('amount').notNullable()
+            table.string('transaction_id').notNullable().unique();
+            table.string('amount').notNullable();
+            table.string('reference').nullable();
+            table.string('label').nullable();
+            table.string('amount_split').nullable();
 
             table.timestamps(true, true);
         });
