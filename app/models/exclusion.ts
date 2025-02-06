@@ -8,7 +8,10 @@ export default class Exclusion extends BaseModel {
     declare id: number;
 
     @column()
-    declare iban: string
+    declare name: string | null;
+
+    @column()
+    declare iban: string;
 
     @column.dateTime({ autoCreate: true })
     declare createdAt: DateTime;
