@@ -1,4 +1,4 @@
-import { BaseCommand, flags, args } from '@adonisjs/core/ace';
+import { args, BaseCommand, flags } from '@adonisjs/core/ace';
 import type { CommandOptions } from '@adonisjs/core/types/ace';
 
 import hash from '@adonisjs/core/services/hash';
@@ -8,7 +8,7 @@ export default class ExcludeIban extends BaseCommand {
     static description = 'Add an IBAN to the exclusion list';
 
     static options: CommandOptions = {
-        startApp: true,
+        startApp: true
     };
 
     // need to be an argument
@@ -43,8 +43,8 @@ export default class ExcludeIban extends BaseCommand {
 
         this.logger.success('IBAN successfully added to the exclusion list');
 
-         // Terminate app explicitly when staysAlive is enabled in command options.
-         // See: https://docs.adonisjs.com/guides/ace/creating-commands#terminating-application
+        // Terminate app explicitly when staysAlive is enabled in command options.
+        // See: https://docs.adonisjs.com/guides/ace/creating-commands#terminating-application
         await this.terminate();
     }
 

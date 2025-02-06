@@ -6,7 +6,7 @@ import {
     TransactionQueryParameters,
     Transactions,
     TransferPayload,
-    TransferResponse,
+    TransferResponse
 } from '#types/qonto';
 
 export default class QontoService {
@@ -15,8 +15,8 @@ export default class QontoService {
         headers: {
             'X-Qonto-Staging-Token': '',
             'Accept': 'application/json, text/plain',
-            'Authorization': `${env.get('QONTO_ORGANIZATION_SLUG')}:${env.get('QONTO_SECRET_KEY')}`,
-        },
+            'Authorization': `${env.get('QONTO_ORGANIZATION_SLUG')}:${env.get('QONTO_SECRET_KEY')}`
+        }
     });
 
     public async organizationDetails(includeExternalAccounts = false) {
@@ -24,8 +24,8 @@ export default class QontoService {
             return await this.httpClient
                 .get('organization', {
                     searchParams: {
-                        include_external_accounts: includeExternalAccounts,
-                    },
+                        include_external_accounts: includeExternalAccounts
+                    }
                 })
                 .json<OrganizationWrapper>();
         } catch (err) {
@@ -50,9 +50,9 @@ export default class QontoService {
                     // The API supports idempotency for safely retrying requests
                     // without accidentally performing the same operation twice.
                     headers: {
-                        'X-Qonto-Idempotency-Key': '',
+                        'X-Qonto-Idempotency-Key': ''
                     },
-                    json: payload,
+                    json: payload
                 })
                 .json<TransferResponse>();
         } catch (err) {

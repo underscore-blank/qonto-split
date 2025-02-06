@@ -1,4 +1,5 @@
-import { BaseSeeder } from '@adonisjs/lucid/seeders'
+import { BaseSeeder } from '@adonisjs/lucid/seeders';
+
 import Exclusion from '#models/exclusion';
 
 export default class extends BaseSeeder {
@@ -10,6 +11,6 @@ export default class extends BaseSeeder {
             {
                 iban: 'FR7616958000017809448907587'
             }
-        ])
+        ]);
     }
 }
