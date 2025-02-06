@@ -17,8 +17,10 @@ export default class ExcludeIban extends BaseCommand {
     })
     declare iban: string;
 
-    // TODO: flag name
-    @flags.string({})
+    @flags.string({
+        flagName: 'name',
+        description: 'Name of accounts to exclude'
+    })
     declare name: string;
 
     async run() {
@@ -37,7 +39,8 @@ export default class ExcludeIban extends BaseCommand {
         }
 
         await Exclusion.create({
-            iban: this.iban,
+            name: this.name,
+            iban: this.iban
         });
 
         this.logger.success('IBAN successfully added to the exclusion list');
