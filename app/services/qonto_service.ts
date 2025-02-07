@@ -1,13 +1,7 @@
 import got from 'got';
 import env from '#start/env';
 
-import {
-    OrganizationWrapper,
-    TransactionQueryParameters,
-    Transactions,
-    TransferPayload,
-    TransferResponse
-} from '#types/qonto';
+import { OrganizationWrapper, TransactionQueryParameters, Transactions, TransferResponse } from '#types/qonto';
 
 export default class QontoService {
     private readonly httpClient = got.extend({
@@ -18,6 +12,17 @@ export default class QontoService {
             'Authorization': `${env.get('QONTO_ORGANIZATION_SLUG')}:${env.get('QONTO_SECRET_KEY')}`
         }
     });
+
+    public async getAccountIban(accountId: string) {
+        try {
+            const { organization } = await this.organizationDetails();
+            const accounts = organization.bank_accounts;
+            const account = accounts.find(acc => acc.id === accountId);
+            return account!.iban
+        } catch (err) {
+            throw new Error(`Error retrieving IBAN for account ${accountId}: ${err}`);
+        }
+    }
 
     public async organizationDetails(includeExternalAccounts = false) {
         try {
@@ -43,23 +48,23 @@ export default class QontoService {
         }
     }
 
-    public async transferToVATAccount(amount: string | number) {
+    public async transferToVATAccount(amount: string | number, debitIban: string) {
         try {
             return this.httpClient
-                .post<TransferPayload>('internal_transfer', {
+                .post('internal_transfer', {
                     // The API supports idempotency for safely retrying requests
                     // without accidentally performing the same operation twice.
                     headers: {
-                        'X-Qonto-Idempotency-Key': '',
+                        'X-Qonto-Idempotency-Key': `idemp-${Date.now()}`,
                         'Content-Type': 'application/json'
                     },
                     json: {
                         internal_transfer: {
-                            debit_iban: '', // TODO: récup iban du sous compte où à était le virement
+                            debit_iban: debitIban,
                             credit_iban: env.get('QONTO_TARGET_ACCOUNT_IBAN'),
                             reference: 'Internal transfer',
                             amount: amount.toString(),
-                            currency: 'EUR',
+                            currency: 'EUR'
                         }
                     }
                 })
