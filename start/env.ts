@@ -23,4 +23,8 @@ export default await Env.create(new URL('../', import.meta.url), {
     QONTO_ORGANIZATION_SLUG: Env.schema.string(),
     QONTO_WATCH_ACCOUNTS_IDS: Env.schema.string(),
     QONTO_TARGET_ACCOUNT_IBAN: Env.schema.string(),
+
+    SPLIT_AMOUNT_PERCENT: Env.schema.number(),
+    VAT_MODE: Env.schema.boolean(),
+    EXCLUDE_INTERNAL_ACCOUNT: Env.schema.boolean(),
 })
