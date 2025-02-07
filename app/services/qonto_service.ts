@@ -43,16 +43,25 @@ export default class QontoService {
         }
     }
 
-    public async createInternalTransfer(payload: TransferPayload) {
+    public async transferToVATAccount(amount: string | number) {
         try {
             return this.httpClient
                 .post<TransferPayload>('internal_transfer', {
                     // The API supports idempotency for safely retrying requests
                     // without accidentally performing the same operation twice.
                     headers: {
-                        'X-Qonto-Idempotency-Key': ''
+                        'X-Qonto-Idempotency-Key': '',
+                        'Content-Type': 'application/json'
                     },
-                    json: payload
+                    json: {
+                        internal_transfer: {
+                            debit_iban: '', // TODO: récup iban du sous compte où à était le virement
+                            credit_iban: env.get('QONTO_TARGET_ACCOUNT_IBAN'),
+                            reference: 'Internal transfer',
+                            amount: amount.toString(),
+                            currency: 'EUR',
+                        }
+                    }
                 })
                 .json<TransferResponse>();
         } catch (err) {
