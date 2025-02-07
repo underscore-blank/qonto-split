@@ -8,10 +8,10 @@ export default class extends BaseSchema {
             table.increments('id');
 
             table.string('transaction_id').notNullable().unique();
-            table.string('amount').notNullable();
+            table.integer('amount').notNullable();
             table.string('reference').nullable();
             table.string('label').nullable();
-            table.string('amount_split').nullable();
+            table.integer('amount_split').nullable();
 
             table.timestamps(true, true);
         });

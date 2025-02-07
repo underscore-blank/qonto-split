@@ -9,16 +9,16 @@ export default class ProcessedTransaction extends BaseModel {
     declare transactionId: string;
 
     @column()
-    declare amount: string;
+    declare amount: number;
+
+    @column()
+    declare amountSplit: number;
 
     @column()
     declare reference: string | null;
 
     @column()
-    declare label: string | null;
-
-    @column()
-    declare amountSplit: string | null;
+    declare label: string;
 
     @column.dateTime({ autoCreate: true })
     declare createdAt: DateTime;
