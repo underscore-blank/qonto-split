@@ -4,7 +4,7 @@ import type { CommandOptions } from '@adonisjs/core/types/ace';
 import hash from '@adonisjs/core/services/hash';
 
 export default class ExcludeIban extends BaseCommand {
-    static commandName = 'exclude:iban';
+    static commandName = 'qonto:exclude';
     static description = 'Add an IBAN to the exclusion list';
 
     static options: CommandOptions = {

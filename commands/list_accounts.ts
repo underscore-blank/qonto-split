@@ -6,7 +6,7 @@ import { inject } from '@adonisjs/core';
 import QontoService from '#services/qonto_service';
 
 export default class ListAccounts extends BaseCommand {
-    static commandName = 'list:accounts';
+    static commandName = 'qonto:accounts';
     static description = 'List organization bank accounts';
 
     static options: CommandOptions = {};
