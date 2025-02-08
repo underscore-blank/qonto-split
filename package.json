@@ -78,5 +78,7 @@
     },
     "eslintConfig": {
         "extends": "@adonisjs/eslint-config/app"
-    }
+    },
+
+    "packageManager": "pnpm@10.2.1"
 }
