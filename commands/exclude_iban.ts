@@ -13,20 +13,20 @@ export default class ExcludeIban extends BaseCommand {
 
     @args.string({
         argumentName: 'iban',
-        description: 'Iban that you need to exclude'
+        description: 'IBAN that you need to exclude',
+        parse: (iban) => iban.trim().replaceAll(' ', '')
     })
     declare iban: string;
 
     @flags.string({
         flagName: 'name',
-        description: 'Name of accounts to exclude'
+        description: 'Custom name of the account to exclude',
     })
     declare name: string;
 
     async run() {
         // Commands cannot have top level imports, as they are scanned when generating the ace-manifest.json file.
         const Exclusion = (await import('#models/exclusion')).default;
-
         const exclusions = await Exclusion.all();
 
         for (const exclusion of exclusions) {
@@ -38,12 +38,15 @@ export default class ExcludeIban extends BaseCommand {
             }
         }
 
+        const ibanHint = this.iban.slice(-4).padStart(4, '*');
+        const ibanName = this.name ? `${this.name} (${ibanHint})` : `Account (${ibanHint})`;
+
         await Exclusion.create({
-            name: this.name,
+            name: ibanName,
             iban: this.iban
         });
 
-        this.logger.success('IBAN successfully added to the exclusion list');
+        this.logger.success(`${ibanName} successfully added to the exclusion list !`);
 
         // Terminate app explicitly when staysAlive is enabled in command options.
         // See: https://docs.adonisjs.com/guides/ace/creating-commands#terminating-application
