@@ -40,7 +40,7 @@ export default class PollTransactions extends BaseCommand {
 
     @flags.boolean({
         flagName: 'dry',
-        description: '',
+        description: 'Run commands in dry mode for development',
         alias: ['d'],
         default: true
     })
