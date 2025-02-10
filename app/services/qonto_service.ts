@@ -1,6 +1,8 @@
 import got from 'got';
 import env from '#start/env';
 
+import * as crypto from 'node:crypto';
+
 import { OrganizationWrapper, TransactionQueryParameters, Transactions, TransferResponse } from '#types/qonto';
 
 export default class QontoService {
@@ -50,21 +52,26 @@ export default class QontoService {
         }
     }
 
-    public async transferToVATAccount(amount: string | number, debitIban: string) {
+    public async internalTransfer(
+        amount: string | number,
+        debitIban: string,
+        creditIban = env.get('QONTO_TARGET_ACCOUNT_IBAN'),
+        reference = 'Internal transfer'
+    ) {
         try {
             return this.httpClient
                 .post('internal_transfer', {
                     // The API supports idempotency for safely retrying requests
                     // without accidentally performing the same operation twice.
                     headers: {
-                        'X-Qonto-Idempotency-Key': `idemp-${Date.now()}`,
+                        'X-Qonto-Idempotency-Key': crypto.randomUUID(),
                         'Content-Type': 'application/json'
                     },
                     json: {
                         internal_transfer: {
                             debit_iban: debitIban,
-                            credit_iban: env.get('QONTO_TARGET_ACCOUNT_IBAN'),
-                            reference: 'Internal transfer',
+                            credit_iban: creditIban,
+                            reference: reference,
                             amount: amount.toString(),
                             currency: 'EUR'
                         }
