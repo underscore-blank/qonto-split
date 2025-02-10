@@ -12,7 +12,7 @@ import { DateTime, type DateTimeUnit } from 'luxon';
 import type { Transaction } from '#types/qonto';
 
 export default class PollTransactions extends BaseCommand {
-    public static commandName = 'poll:transactions';
+    public static commandName = 'qonto:transactions';
     public static description = 'Retrieves new transactions from the Qonto API and processes them';
 
     public static options: CommandOptions = {

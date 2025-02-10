@@ -4,8 +4,10 @@ import env from '#start/env';
 import { OrganizationWrapper, TransactionQueryParameters, Transactions, TransferResponse } from '#types/qonto';
 
 export default class QontoService {
+    private readonly apiVersion = 'v2';
+
     private readonly httpClient = got.extend({
-        prefixUrl: env.get('QONTO_API_BASE_URL'),
+        prefixUrl: `${env.get('QONTO_API_BASE_URL')}${this.apiVersion}/`,
         headers: {
             'X-Qonto-Staging-Token': '',
             'Accept': 'application/json, text/plain',
