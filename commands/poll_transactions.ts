@@ -74,9 +74,11 @@ export default class PollTransactions extends BaseCommand {
     }
 
     public async run() {
+        const filteredTransactions = await this.filterTransactions(this.transactions)
+
         await Promise.all(
-            this.transactions.map(async (tx) => {
-                await this.processTransaction(tx);
+            filteredTransactions.map(async (transaction) => {
+                await this.processTransaction(transaction);
             })
         );
 
