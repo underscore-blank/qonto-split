@@ -8,6 +8,7 @@ export default class CreateDatabase extends BaseCommand {
     async run() {
         const tmpDir = this.app.tmpPath();
         const dbPath = this.app.tmpPath('db.sqlite');
+
         this.logger.info(`Creating database at ${dbPath}`);
 
         try {

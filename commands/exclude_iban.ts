@@ -14,13 +14,13 @@ export default class ExcludeIban extends BaseCommand {
     @args.string({
         argumentName: 'iban',
         description: 'IBAN that you need to exclude',
-        parse: (iban) => iban.trim().replaceAll(' ', '')
+        parse: (iban) => iban.trim().replaceAll(/\s/, '')
     })
     declare iban: string;
 
     @flags.string({
         flagName: 'name',
-        description: 'Custom name of the account to exclude',
+        description: 'Custom name of the account to exclude'
     })
     declare name: string;
 
