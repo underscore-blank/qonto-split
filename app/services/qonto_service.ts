@@ -22,7 +22,7 @@ export default class QontoService {
             const { organization } = await this.organizationDetails();
             const accounts = organization.bank_accounts;
             const account = accounts.find(acc => acc.id === accountId);
-            return account!.iban
+            return account!.iban;
         } catch (err) {
             throw new Error(`Error retrieving IBAN for account ${accountId}: ${err}`);
         }
