@@ -6,6 +6,7 @@ import env from '#start/env';
 import hash from '@adonisjs/core/services/hash';
 
 import QontoService from '#services/qonto_service';
+import ProcessedTransaction from '#models/processed_transaction';
 
 import { DateTime, type DateTimeUnit } from 'luxon';
 
@@ -47,40 +48,49 @@ export default class PollTransactions extends BaseCommand {
     declare dryRun: boolean;
 
     private currentDateTime = DateTime.now();
-    private transactions: Transaction[] = [];
+    private transactions: Record<string, Partial<ProcessedTransaction>[]> = {};
 
     private qontoService!: QontoService;
 
     @inject()
     public async prepare(qontoService: QontoService) {
-        const transactionsByAccountIds = await Promise.all(
-            this.accounts.map(async (accountId) => {
-                const { transactions } = await qontoService.listTransactions({
-                    bank_account_id: accountId,
-
-                    'operation_type[]': 'income',
-
-                    emitted_at_from: this.currentDateTime.startOf(this.interval).toISO(),
-                    emitted_at_to: this.currentDateTime.endOf(this.interval).toISO()
-                });
-
-                return transactions;
-            })
-        );
-
         this.qontoService = qontoService;
 
-        this.transactions = await this.filterTransactions(transactionsByAccountIds.flat());
+        for await (const accountId of this.accounts) {
+            const { transactions } = await qontoService.listTransactions({
+                bank_account_id: accountId,
+
+                'operation_type[]': 'income',
+
+                emitted_at_from: this.currentDateTime.startOf(this.interval).toISO(),
+                emitted_at_to: this.currentDateTime.endOf(this.interval).toISO()
+            });
+
+            const filteredTransactions = await this.filterTransactions(transactions);
+
+            this.transactions[accountId] = filteredTransactions.map(tx => ({
+                transactionId: tx.id,
+                amount: tx.amount,
+                reference: tx.reference,
+                label: tx.label,
+                amountSplit: this.computeSplitAmount(tx)
+            }));
+        }
     }
 
     public async run() {
-        const filteredTransactions = await this.filterTransactions(this.transactions)
+        const ProcessedTransactions = (await import('#models/processed_transaction')).default;
 
-        await Promise.all(
-            filteredTransactions.map(async (transaction) => {
-                await this.processTransaction(transaction);
-            })
-        );
+        for (const [accountId, transactions] of Object.entries(this.transactions)) {
+            const amountWithdrawal = transactions.reduce((sum, tx) => sum + tx.amountSplit!, 0);
+
+            const debitIban = await this.qontoService.getAccountIban(accountId);
+
+            if (!this.dryRun) {
+                await this.qontoService.internalTransfer(amountWithdrawal, debitIban);
+                await ProcessedTransactions.createMany(transactions);
+            }
+        }
 
         await this.terminate();
     }
@@ -116,30 +126,15 @@ export default class PollTransactions extends BaseCommand {
             .filter((tx): tx is Transaction => tx !== null);
     }
 
-    private async processTransaction(transaction: Transaction) {
-        const ProcessedTransactions = (await import('#models/processed_transaction')).default;
+    private computeSplitAmount(transaction: Transaction): number {
+        const percent = Number(env.get('SPLIT_AMOUNT_PERCENT')) > 1
+            ? Number(env.get('SPLIT_AMOUNT_PERCENT')) / 100
+            : Number(env.get('SPLIT_AMOUNT_PERCENT'));
 
-        const percent = env.get('SPLIT_AMOUNT_PERCENT') > 1
-            ? env.get('SPLIT_AMOUNT_PERCENT') / 100
-            : env.get('SPLIT_AMOUNT_PERCENT');
-
-        const splitAmount = (env.get('VAT_MODE')
+        const amount = env.get('VAT_MODE') === true
             ? transaction.amount - (transaction.amount / (percent + 1))
-            : transaction.amount * percent).toFixed(2);
+            : transaction.amount * percent;
 
-        const debitIban = await this.qontoService.getAccountIban(transaction.bank_account_id);
-
-        if (!this.dryRun)
-            await this.qontoService.transferToVATAccount(splitAmount, debitIban);
-
-        await ProcessedTransactions.create({
-            transactionId: transaction.id,
-            amount: transaction.amount,
-            reference: transaction.reference,
-            label: transaction.label,
-            amountSplit: Number(splitAmount)
-        });
-
-        this.logger.success(`Transaction ${transaction.reference} treated => ${splitAmount}`);
+        return Number(amount.toFixed(2));
     }
 }
