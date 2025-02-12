@@ -21,7 +21,6 @@ export default await Env.create(new URL('../', import.meta.url), {
     QONTO_API_BASE_URL: Env.schema.string(),
     QONTO_SECRET_KEY: Env.schema.string(),
     QONTO_ORGANIZATION_SLUG: Env.schema.string(),
-    QONTO_WATCH_ACCOUNTS_IDS: Env.schema.string(),
     QONTO_TARGET_ACCOUNT_IBAN: Env.schema.string(),
 
     SPLIT_AMOUNT_PERCENT: Env.schema.number(),

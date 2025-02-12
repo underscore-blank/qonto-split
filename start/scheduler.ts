@@ -1,5 +1,5 @@
 import scheduler from 'adonisjs-scheduler/services/main';
 
-import PollTransactions from '#commands/poll_transactions';
+import QontoSplit from '#commands/qonto_split';
 
-scheduler.command(PollTransactions).daily();
+scheduler.command(QontoSplit).daily();
