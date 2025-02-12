@@ -72,10 +72,11 @@ export default class ExcludeIban extends BaseCommand {
         animation.stop();
 
         const table = this.ui.table();
-        table.head(['Name', 'IBAN', 'Qonto ID']);
+        table.head(['Name', 'IBAN', 'Qonto ID', 'Watched']);
 
         for (const account of bankAccounts) {
-            table.row([account.name, account.iban, account.id]);
+            const isWatched = await this.watchedAccount.findBy('qonto_id', account.id);
+            table.row([account.name, account.iban, account.id, isWatched ? 'Yes' : 'No']);
         }
 
         table.render();
