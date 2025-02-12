@@ -8,7 +8,7 @@ export default class Exclusion extends BaseModel {
     declare id: number;
 
     @column()
-    declare name: string | null;
+    declare name: string;
 
     @column()
     declare iban: string;

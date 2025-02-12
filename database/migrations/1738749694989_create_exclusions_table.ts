@@ -5,9 +5,9 @@ export default class extends BaseSchema {
 
     async up() {
         this.schema.createTable(this.tableName, (table) => {
-            table.increments('id');
+            table.increments('id').primary();
 
-            table.string('name').nullable();
+            table.string('name').notNullable();
             table.string('iban').notNullable().unique();
 
             table.timestamps(true, true);
