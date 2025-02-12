@@ -73,7 +73,7 @@ export default class ExcludeIban extends BaseCommand {
     async add() {
         const iban = await this.prompt.ask('Enter the IBAN to exclude', {
             result(value: string): string {
-                return value.trim().split(' ').join('').toUpperCase();
+                return value.trim().replaceAll(' ', '').toUpperCase();
             }
         })
 
