@@ -12,7 +12,7 @@ enum MenuChoice {
     EXIT = 'Exit'
 }
 
-export default class ExcludeIban extends BaseCommand {
+export default class QontoWatch extends BaseCommand {
     static commandName = 'qonto:watch';
     static description = 'Manage watched accounts';
 
@@ -106,6 +106,7 @@ export default class ExcludeIban extends BaseCommand {
         const { organization } = await this.qontoService.organizationDetails();
         const bankAccounts = organization.bank_accounts;
 
+        animation.update('Organization details fetched');
         animation.stop();
 
         const preparedList = bankAccounts.map(account => ({

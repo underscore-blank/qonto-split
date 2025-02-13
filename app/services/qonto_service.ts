@@ -55,8 +55,8 @@ export default class QontoService {
     public async internalTransfer(
         amount: string | number,
         debitIban: string,
-        creditIban = env.get('QONTO_TARGET_ACCOUNT_IBAN'),
-        reference = 'Internal transfer'
+        creditIban: string,
+        reference: string
     ) {
         try {
             return this.httpClient

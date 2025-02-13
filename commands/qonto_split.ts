@@ -1,18 +1,17 @@
-import Exclusion from "#models/exclusion";
-import WatchedAccount from "#models/watched_account";
-import { BaseCommand, flags } from '@adonisjs/core/ace';
-import type { CommandOptions } from '@adonisjs/core/types/ace';
 import { inject } from '@adonisjs/core';
-
-import env from '#start/env';
 import hash from '@adonisjs/core/services/hash';
+import { DateTime, type DateTimeUnit } from 'luxon';
+import { BaseCommand, flags } from '@adonisjs/core/ace';
 
 import QontoService from '#services/qonto_service';
-import ProcessedTransaction from '#models/processed_transaction';
 
-import { DateTime, type DateTimeUnit } from 'luxon';
+import WatchedAccount from "#models/watched_account";
+import Exclusion from "#models/exclusion";
+import ProcessedTransaction from '#models/processed_transaction';
+import { ConfigKey } from "#models/config";
 
 import type { Transaction } from '#types/qonto';
+import type { CommandOptions } from '@adonisjs/core/types/ace';
 
 export default class QontoSplit extends BaseCommand {
     public static commandName = 'qonto:split';
@@ -50,6 +49,12 @@ export default class QontoSplit extends BaseCommand {
     private watchedAccounts: WatchedAccount[] = [];
     private excludedAccounts: Exclusion[] = [];
 
+    private targetAccountIban!: string;
+    private withdrawReference!: string;
+    private splitAmount!: number;
+    private vatMode!: boolean;
+    private excludeInternalAccounts!: boolean;
+
     private withdrawalActions = new Map<string, { accountName: string, iban: string, amount: number }>();
     private transactions: Record<string, Partial<ProcessedTransaction>[]> = {};
 
@@ -58,13 +63,15 @@ export default class QontoSplit extends BaseCommand {
     @inject()
     public async prepare(qontoService: QontoService) {
         this.qontoService = qontoService;
+        await this.defineConfig();
+
         this.processedTransaction = (await import('#models/processed_transaction')).default;
 
         const watchedAccount = (await import('#models/watched_account')).default
         this.watchedAccounts = await watchedAccount.all();
 
         const exclusion = (await import('#models/exclusion')).default;
-        this.excludedAccounts = await exclusion.all();
+        this.excludedAccounts.push(...await exclusion.all() ?? []);
 
         const animation = this.logger.await('Fetching organization details');
         animation.start();
@@ -102,8 +109,7 @@ export default class QontoSplit extends BaseCommand {
         }
 
         const table = this.ui.table();
-        const splitPercent = this.defineSplitPercent() * 100;
-        table.head(['Account', 'Transaction ID','Reference', 'Amount', 'Split', 'Amount Split']);
+        table.head(['Account', 'Transaction ID', 'Reference', 'Amount', 'Split', 'Amount Split']);
 
         for (const [accountId, transactions] of Object.entries(this.transactions)) {
             const accountName = this.watchedAccounts.find(account => account.qonto_id === accountId)?.name!;
@@ -111,11 +117,24 @@ export default class QontoSplit extends BaseCommand {
             const debitIban = await this.qontoService.getAccountIban(accountId);
 
             for (const tx of transactions) {
-                table.row([accountName, tx.transactionId!, tx.reference!, tx.amount?.toFixed(2)!, `${splitPercent}%`, tx.amountSplit?.toFixed(2)!]);
+                const truncatedReference = tx.reference!.slice(0, 30);
+
+                table.row([
+                    accountName,
+                    tx.transactionId!,
+                    truncatedReference.length < tx.reference!.length ? `${truncatedReference}...` : truncatedReference,
+                    tx.amount?.toFixed(2)!,
+                    `${this.splitAmount * 100}%`,
+                    tx.amountSplit?.toFixed(2)!
+                ]);
             }
 
             if (amountWithdrawal > 0)
-                this.withdrawalActions.set(accountId, { accountName: accountName, iban: debitIban, amount: amountWithdrawal });
+                this.withdrawalActions.set(accountId, {
+                    accountName: accountName,
+                    iban: debitIban,
+                    amount: amountWithdrawal
+                });
         }
 
         table.render();
@@ -127,10 +146,16 @@ export default class QontoSplit extends BaseCommand {
 
         for (const withdrawal of this.withdrawalActions.values()) {
             if (!this.dryRun) {
-                await this.qontoService.internalTransfer(withdrawal.amount, withdrawal.iban);
+                const transfert = await this.qontoService.internalTransfer(
+                    withdrawal.amount,
+                    withdrawal.iban,
+                    this.targetAccountIban,
+                    this.withdrawReference
+                );
+                this.logger.info(`[${transfert.id}] Withdraw ${withdrawal.amount} from ${withdrawal.accountName} successfully.`);
+            } else {
+                this.logger.info(`[dry] Withdraw ${withdrawal.amount} from ${withdrawal.accountName} successfully.`);
             }
-
-            this.logger.info(`Withdraw ${withdrawal.amount} from ${withdrawal.accountName} successfully.`);
         }
 
         await this.terminate();
@@ -142,10 +167,9 @@ export default class QontoSplit extends BaseCommand {
                 const processed = await this.processedTransaction.findBy('transaction_id', tx.id);
                 if (processed) return null;
 
-                const accountIban = await this.qontoService.getAccountIban(tx.bank_account_id);
                 const excludedMatches = await Promise.all(
                     this.excludedAccounts.map(async (exclusion) => {
-                        return await hash.verify(exclusion.iban, accountIban);
+                        return await hash.verify(exclusion.iban, tx.income?.counterparty_account_number ?? '');
                     })
                 );
 
@@ -157,18 +181,42 @@ export default class QontoSplit extends BaseCommand {
         return filtered.filter((tx): tx is Transaction => tx !== null);
     }
 
-    private defineSplitPercent(): number {
-        return Number(env.get('SPLIT_AMOUNT_PERCENT')) > 1
-            ? Number(env.get('SPLIT_AMOUNT_PERCENT')) / 100
-            : Number(env.get('SPLIT_AMOUNT_PERCENT'));
-    }
-
     private computeSplitAmount(transaction: Transaction): number {
-        const percent = this.defineSplitPercent();
-        const amount = env.get('VAT_MODE') === true
-            ? transaction.amount - (transaction.amount / (percent + 1))
-            : transaction.amount * percent;
+        const amount = this.vatMode
+            ? transaction.amount - (transaction.amount / (this.splitAmount + 1))
+            : transaction.amount * this.splitAmount;
 
         return Number(amount.toFixed(2));
+    }
+
+    private async defineConfig() {
+        const config = (await import('#models/config')).default;
+
+        this.withdrawReference = (await config.findBy('key', ConfigKey.WithdrawalReference))?.value!;
+        const rawTargetAccount = (await config.findBy('key', ConfigKey.TargetAccount))?.value!;
+        const rawSplitAmount = (await config.findBy('key', ConfigKey.SplitAmount))?.value!;
+        const rawVatMode = (await config.findBy('key', ConfigKey.VatMode))?.value!;
+        const rawExcludeInternalAccounts = (await config.findBy('key', ConfigKey.ExcludeInternalAccounts))?.value!;
+
+        if (!this.withdrawReference || !rawTargetAccount || !rawVatMode || !rawExcludeInternalAccounts || !rawSplitAmount) {
+            this.logger.error('Application not setup. Start the app with the qonto:setup command.');
+            await this.terminate();
+            return process.exit(1);
+        }
+
+        this.vatMode = Boolean(Number(rawVatMode));
+        this.excludeInternalAccounts = Boolean(Number(rawExcludeInternalAccounts));
+        this.splitAmount = Number(rawSplitAmount);
+
+        const { organization } = await this.qontoService.organizationDetails();
+        const bankAccounts = organization.bank_accounts;
+
+        for (const account of bankAccounts) {
+            if (account.id === rawTargetAccount)
+                this.targetAccountIban = account.iban;
+
+            if (this.excludeInternalAccounts)
+                this.excludedAccounts.push({ name: account.name, iban: await hash.make(account.iban) } as Exclusion);
+        }
     }
 }

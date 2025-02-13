@@ -11,7 +11,7 @@ enum MenuChoice {
     EXIT = 'Exit'
 }
 
-export default class ExcludeIban extends BaseCommand {
+export default class QontoExclude extends BaseCommand {
     static commandName = 'qonto:exclude';
     static description = 'Manage excluded accounts';
 
