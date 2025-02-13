@@ -60,7 +60,7 @@ export default class QontoService {
     ) {
         try {
             return this.httpClient
-                .post('internal_transfer', {
+                .post('internal_transfers', {
                     // The API supports idempotency for safely retrying requests
                     // without accidentally performing the same operation twice.
                     headers: {

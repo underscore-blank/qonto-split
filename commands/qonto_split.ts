@@ -89,6 +89,7 @@ export default class QontoSplit extends BaseCommand {
             });
 
             const filteredTransactions = await this.filterTransactions(transactions);
+            if (filteredTransactions.length <= 0) continue;
 
             this.transactions[account.qonto_id] = filteredTransactions.map(tx => ({
                 transactionId: tx.id,
@@ -153,11 +154,15 @@ export default class QontoSplit extends BaseCommand {
                     this.targetAccountIban,
                     this.withdrawReference
                 );
+
                 this.logger.info(`[${transfert.id}] Withdraw ${withdrawal.amount} from ${withdrawal.accountName} successfully.`);
             } else {
                 this.logger.info(`[dry] Withdraw ${withdrawal.amount} from ${withdrawal.accountName} successfully.`);
             }
         }
+
+        if (!this.dryRun)
+            await this.processedTransaction.createMany(Object.values(this.transactions).flat());
 
         await this.terminate();
     }
