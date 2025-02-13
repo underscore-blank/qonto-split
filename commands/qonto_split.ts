@@ -149,7 +149,7 @@ export default class QontoSplit extends BaseCommand {
         for (const withdrawal of this.withdrawalActions.values()) {
             if (!this.dryRun) {
                 const transfert = await this.qontoService.internalTransfer(
-                    withdrawal.amount,
+                    withdrawal.amount.toFixed(2),
                     withdrawal.iban,
                     this.targetAccountIban,
                     this.withdrawReference
