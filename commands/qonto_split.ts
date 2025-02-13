@@ -119,7 +119,8 @@ export default class QontoSplit extends BaseCommand {
             const debitIban = await this.qontoService.getAccountIban(accountId);
 
             for (const tx of transactions) {
-                const truncatedReference = tx.reference!.slice(0, 30);
+                const description = tx.reference!.length <=0 ? tx.label! : tx.reference!;
+                const truncatedReference = description.slice(0, 30);
 
                 table.row([
                     accountName,
