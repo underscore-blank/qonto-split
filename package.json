@@ -58,6 +58,7 @@
         "better-sqlite3": "^11.8.1",
         "got": "^14.4.5",
         "luxon": "^3.5.0",
+        "pm2": "^5.4.3",
         "reflect-metadata": "^0.2.2"
     },
     "hotHook": {
