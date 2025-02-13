@@ -56,7 +56,7 @@ export default class QontoSplit extends BaseCommand {
     private vatMode!: boolean;
     private excludeInternalAccounts!: boolean;
 
-    private withdrawalActions = new Map<string, { accountName: string, iban: string, amount: number }>();
+    private withdrawalActions = new Map<string, { accountName: string, iban: string, amount: string }>();
     private transactions: Record<string, Partial<ProcessedTransaction>[]> = {};
 
     private currentDateTime = DateTime.now();
@@ -136,7 +136,7 @@ export default class QontoSplit extends BaseCommand {
                 this.withdrawalActions.set(accountId, {
                     accountName: accountName,
                     iban: debitIban,
-                    amount: amountWithdrawal
+                    amount: amountWithdrawal.toFixed(2)
                 });
         }
 
@@ -150,7 +150,7 @@ export default class QontoSplit extends BaseCommand {
         for (const withdrawal of this.withdrawalActions.values()) {
             if (!this.dryRun) {
                 const transfert = await this.qontoService.internalTransfer(
-                    withdrawal.amount.toFixed(2),
+                    withdrawal.amount,
                     withdrawal.iban,
                     this.targetAccountIban,
                     this.withdrawReference
