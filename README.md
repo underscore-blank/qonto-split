@@ -103,9 +103,19 @@ Commencez par exécuter les commandes suivantes pour récupérer le projet sur v
     ```
 5. Generate the application key
     ```sh
-    pnpm run generate:key
+    node ace generate:key
     ```
-   
+6. Create the database (we use SQLite)
+    ```sh
+    node ace db:create
+    ```
+7. Run the migrations
+    ```sh
+    node ace migration:fresh
+    ```
+
+That's it! You are now ready to setup the application.
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
    
 ### <span id="getting-started_environment">2. Environment variables</span>
