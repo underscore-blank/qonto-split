@@ -1,3 +1,4 @@
+import env from "#start/env";
 import { inject } from '@adonisjs/core';
 import hash from '@adonisjs/core/services/hash';
 import { DateTime, type DateTimeUnit } from 'luxon';
@@ -31,7 +32,7 @@ export default class QontoSplit extends BaseCommand {
     @flags.boolean({
         flagName: 'dry',
         description: 'Run commands in dry mode.',
-        default: true
+        default: ['development', 'test'].includes(env.get('NODE_ENV', 'development'))
     })
     declare dryRun: boolean;
 
