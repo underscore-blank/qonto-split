@@ -15,7 +15,7 @@ import type { CommandOptions } from '@adonisjs/core/types/ace';
 
 export default class QontoSplit extends BaseCommand {
     public static commandName = 'qonto:split';
-    public static description = 'Retrieves new transactions from the Qonto API and processes them';
+    public static description = 'Retrieves new transactions from watched accounts and splits them.';
 
     public static options: CommandOptions = {
         startApp: true
@@ -23,8 +23,7 @@ export default class QontoSplit extends BaseCommand {
 
     @flags.string({
         flagName: 'interval',
-        description: 'Defines the time interval for retrieving transactions',
-        alias: ['i'],
+        description: 'Defines the time interval for retrieving transactions.',
         default: 'week'
     })
     declare interval: DateTimeUnit;
@@ -37,11 +36,12 @@ export default class QontoSplit extends BaseCommand {
     declare dryRun: boolean;
 
     @flags.boolean({
-        flagName: 'auto',
-        description: 'Process without interactive mode.',
+        flagName: 'interactive',
+        alias: 'i',
+        description: 'Process in interactive mode.',
         default: false
     })
-    declare auto: boolean;
+    declare interactive: boolean;
 
     private qontoService!: QontoService;
     private processedTransaction!: typeof ProcessedTransaction;
@@ -139,7 +139,7 @@ export default class QontoSplit extends BaseCommand {
 
         table.render();
 
-        if (!this.auto && !await this.prompt.confirm('Do you want to proceed with the transactions ?')) {
+        if (this.interactive && !await this.prompt.confirm('Do you want to proceed with the transactions ?')) {
             this.logger.warning('Aborted by user.');
             return await this.terminate();
         }
