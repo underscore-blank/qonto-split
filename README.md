@@ -10,7 +10,7 @@
   <h3 align="center">qonto-split</h3>
 
   <p align="center">
-    Split your Qonto incomes automatically to an internal account.
+    Automatically split your Qonto incomes into an internal account.
     <br />
     <a href="https://github.com/underscore-blank/qonto-split/issues/new?labels=bug">Report Bug</a>
     ·
@@ -54,11 +54,9 @@
 
 ## About The Project
 
-Qonto Split est un outil permettant de répartir automatiquement les revenus de votre compte Qonto sur un compte interne. 
-L'usage initial a été pensé pour répartir le montant de TVA entrant sur un sous-compte afin d'éviter une sur-utilisation
-de trésorerie et une provision constante pour assurer son versement. Pour autant, il est utilisable également pour 
-répartir un pourcentage fixe d'un montant entrant (calcule different de la TVA). Cette fonctionnalité n'est pas 
-disponible sur Qonto.
+Qonto Split is a tool that automatically distributes your Qonto account’s income into an internal account.
+
+The initial purpose was to allocate incoming VAT amounts to a sub-account to prevent excessive cash flow usage and ensure a constant provision for its payment. However, it can also be used to allocate a fixed percentage of an incoming amount (a different calculation than VAT). This feature is not available on Qonto.
 
 ### Built With
 
@@ -71,19 +69,20 @@ disponible sur Qonto.
 
 ## Getting Started
 
-Nous allons vous guider étapes par étapes pour commencer à utiliser `qonto-split`.
+Follow the step-by-step guide below to start using `qonto-split`.
 
 ### <span id="getting-started_prerequisites">Prerequisites</span>
 
-Nous ❤️ `pnpm` pour gérer les dépendances du projet. Vous pouvez l'installer avec `npm` ou `yarn`. Si vous ne l'avez
-pas, utilisez la commande suivante ou référez vous à la [documentation](https://pnpm.io/installation) de `pnpm` pour plus d'informations.
+We ❤️ `pnpm` for managing project dependencies. You can install it using npm or yarn. If you don’t have it, use the 
+following command or refer to the `pnpm` [documentation](https://pnpm.io/installation) for more information.
+
 ```sh
 npm install -g pnpm@latest-10
 ```
 
 ### <span id="getting-started_installation">1. Installation</span>
 
-Commencez par exécuter les commandes suivantes pour récupérer le projet sur votre machine :
+Run the following commands to get the project on your machine:
 
 1. Clone the repo (using HTTPS or SSH)
     ```sh
@@ -120,14 +119,13 @@ That's it! You are now ready to setup the application.
    
 ### <span id="getting-started_environment">2. Environment variables</span>
 
-Définissez toutes les variables environment dans le fichier `.env` à la racine du projet. Vous devriez avoir quelque
-chose de la sorte une fois complété. Le `NODE_ENV` à une influence sur le comportement de l'application : 
+Define all the environment variables in the `.env` file at the project root. Your completed file should look like this. The `NODE_ENV` variable influences the application’s behavior:
 
-- `development` : Toutes les commandes sont exécutés en dry-run et **aucun virement n'est effectué**.
-- `production` : Les commandes sont exécutés normalement et les virements sont effectués.
+- `development` : All commands are executed in dry-run mode, and **no transfers are made**.
+- `production` : Commands are executed normally, and transfers are performed.
 
-Pour récupérer vos credentials, rendez-vous sur [Qonto](https://app.qonto.com) et récupérez votre clé secrète et 
-l'identifiant de votre organisation : Settings (Cog Icon) > Intégrations et Partenariats > Clé API.
+To retrieve your credentials, go to [Qonto](https://app.qonto.com) and get your secret key and organization ID: 
+**Settings (Cog Icon) > Integrations & Partnerships > API Key.**
 
 ```env
 TZ=UTC
@@ -146,25 +144,20 @@ QONTO_ORGANIZATION_SLUG=YOUR_QONTO_ORGANIZATION_SLUG # Your Qonto organization s
 
 ### <span id="getting-started_setup">3. Setup</span>
 
-Vous allez maintenant définir la configuration de l'application. Si vous avez besoin de modifier la configuration il 
-vous suffira d'utiliser cette commande à nouveau. Laissez-vous ensuite guider à travers la configuration intéractive.
-Le setup vous proposera de configurer les watched accounts et les IBAN à exclure si vous souhaitez le faire plus tard
-consultez la section [commands](#commands) pour plus d'informations.
+Now, you will configure the application. If you need to modify the configuration later, simply rerun the setup command. The setup wizard will guide you interactively.
+The setup will allow you to configure watched accounts and IBANs to exclude. If you want to configure them later, check the [commands](#commands) section.
 
-**Informations additionnelles :**
-- **Reference for withdrawal :** La référence qui sera utilisée pour les virements. Elle est utilisée pour que vous 
-  puissiez identifier les virements effectués par l'application. Par défaut : `Internal Transfer - Qonto Split`.
-- **Split amount :** Le pourcentage du montant à transférer sur le compte interne. Entrez le nombre sans le symbole `%`.
-- **VAT mode :** Change le mode de calcul pour le montant à transférer. Si vous utilisez le mode TVA, le montant 
-  transféré sera calculé en fonction du montant de **Split amount**. Si vous utilisez le mode fixe, le montant transféré 
-  sera calculé en fonction du pourcentage du montant entrant.
-- **Exclude internal incomes :** Si vous souhaitez exclure les virements internes de la répartition, activez cette option.
+- **Reference for withdrawal:** The reference used for transfers to help you identify them. Default: `Internal Transfer - Qonto Split`.
+- **Split amount:**  The percentage of the incoming amount to transfer to the internal account. Enter the number without the `%`.
+- **VAT mode:** Changes the calculation mode for the transferred amount. In VAT mode, the amount is calculated 
+  based on the **Split amount**. In fixed mode, it is calculated as a percentage of the incoming amount.
+- **Exclude internal incomes:** If you want to exclude internal transfers from the split, enable this option.
 
-**Formulaire de configuration :**
+**Configuration form:**
 
 ![Qonto Setup Form](./.github/assets/qonto_setup.png)
 
-**Pour lancer le setup, exécutez la commande suivante :**
+**Run the setup with the following command:**
 ```sh
 node ace qonto:setup
 ```
@@ -173,14 +166,12 @@ node ace qonto:setup
 
 ### <span id="getting-started_manual_run">4. Manual Run</span>
 
-Si vous souhaitez exécuter l'application manuellement, vous pouvez le faire en utilisant la commande suivante.
+To manually execute the application, use the following command.
 
 **Options :**
-- `--interactive` ou `-i` : Active le mode intéractif pour les virements. Vous pourrez voir les détails des virements 
-   avant de les effectuer. Default : `false`.
-- `--dry` : Exécute les commandes en mode dry-run. Aucun virement ne sera effectué. Default activated if
-   `NODE_ENV=development`.
-- `--interval[=value]` : Définit un interval de temps pour la récupération des transactions. Valeurs possibles : 
+- `--interactive` or `-i`: Enables interactive mode, allowing you to review transfers before execution. Default: `false`.
+- `--dry`: Runs in dry-run mode, where no transfers are made. Default activated if `NODE_ENV=development`.
+- `--interval[=value]` : Defines the time interval for transaction retrieval. Possible values:
   - `year`
   - `quarter`
   - `month` 
@@ -189,25 +180,22 @@ Si vous souhaitez exécuter l'application manuellement, vous pouvez le faire en 
   - `hour` 
   - `minute`
 
-**Pour lancer l'application manuellement, exécutez la commande suivante :**
+**Run manually with:**
 ```sh
 node ace qonto:split --interactive
 ```
-  
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### <span id="getting-started_auto_run">5. Scheduled Run (Cron-like)</span>
 
-Vous pouvez choisir d'exécuter l'application de manière automatique quotidiennement afin de répartir les revenus de
-votre compte Qonto sans vous soucier de lancer l'application manuellement. Pour cela, nous avons ajouté une
-configuration `pm2`. Vous pouvez lancer l'application en mode production avec la commande suivante :
+To automatically execute the application daily, use the built-in pm2 configuration:
 
 ```sh
 pm2 start scheduler.config.cjs && pm2 save
 ```
 
-> Vous pouvez modifier la configuration de `pm2` en éditant le fichier [`scheduler.config.cjs`](./scheduler.config.cjs) 
-> à la racine du projet.
+> You can modify the `pm2` configuration by editing [`scheduler.config.cjs`](./scheduler.config.cjs)  in the project root.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -215,17 +203,15 @@ pm2 start scheduler.config.cjs && pm2 save
 
 ## Commands
 
-Des commandes supplémentaires sont disponibles pour vous aider à gérer la configuration l'application. Ou si vous ne
-souhaitez pas relancer le processus de setup en entier.
+Additional commands are available to help manage the application's configuration. You can also use them if you don't want to restart the entire setup process.
 
 ### <span id="commands_watch">`qonto:watch` - Manage watched accounts</span>
 
-Cette commande vous permet de gérer les comptes surveillés par l'application. Vous pouvez ajouter ou supprimer des
-comptes à surveiller. Les comptes surveillés sont utilisés pour récupérer les transactions et les virements entrants.
+This command allows you to manage the accounts monitored by the application. You can add or remove accounts to watch. The monitored accounts are used to retrieve transactions and incoming transfers.
 
 ![Qonto Watch Form](./.github/assets/qonto_watch.png)
 
-**Run with the following command :**
+**Run with the following command:**
 ```sh
 node ace qonto:watch
 ```
@@ -234,8 +220,7 @@ node ace qonto:watch
 
 ### <span id="commands_exlude">`qonto:exclude` - Manage excluded accounts</span>
 
-Cette commande vous permet de gérer les comptes à exclure de la répartition. Les comptes exclus ne seront pas pris en
-compte lors de la répartition des revenus. Toutes les transactions provenant de ces comptes seront ignorées.
+This command allows you to manage accounts that should be excluded from income distribution. Excluded accounts will not be considered when splitting income. All transactions from these accounts will be ignored.
 
 ![Qonto Exclude Form](./.github/assets/qonto_exclude.png)
 
